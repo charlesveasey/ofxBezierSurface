@@ -1,0 +1,27 @@
+<points>
+	<point xyz="0,0,0"/>
+	<point xyz="0,192,0"/>
+	<point xyz="0,384,0"/>
+	<point xyz="0,576,0"/>
+	<point xyz="0,768,0"/>
+	<point xyz="256,0,0"/>
+	<point xyz="153,117,0"/>
+	<point xyz="153,309,0"/>
+	<point xyz="153,501,0"/>
+	<point xyz="256,768,0"/>
+	<point xyz="512,0,0"/>
+	<point xyz="409,117,0"/>
+	<point xyz="409,309,0"/>
+	<point xyz="409,501,0"/>
+	<point xyz="512,768,0"/>
+	<point xyz="768,0,0"/>
+	<point xyz="665,117,0"/>
+	<point xyz="665,309,0"/>
+	<point xyz="665,501,0"/>
+	<point xyz="768,768,0"/>
+	<point xyz="1024,0,0"/>
+	<point xyz="1024,192,0"/>
+	<point xyz="1024,384,0"/>
+	<point xyz="1024,576,0"/>
+	<point xyz="1024,768,0"/>
+</points>
