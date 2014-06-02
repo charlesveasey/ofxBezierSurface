@@ -43,35 +43,22 @@ void ofxBezierSurface::setup(int w, int h, int dim, int res) {
     }
     
     // interface
-    bControls = true;
     updateSurface = false;
     ctrlPntSize = 10;
-    drawBox = false;
     shift = false;
     up = false;
     down = false;
     left = false;
     right = false;
     found  = false;
-    
-    ofAddListener(ofEvents().mousePressed, this, &ofxBezierSurface::mousePressed);
-    ofAddListener(ofEvents().mouseDragged, this, &ofxBezierSurface::mouseDragged);
-    ofAddListener(ofEvents().mouseReleased, this, &ofxBezierSurface::mouseReleased);
-    ofAddListener(ofEvents().keyPressed, this, &ofxBezierSurface::keyPressed);
-    ofAddListener(ofEvents().keyReleased, this, &ofxBezierSurface::keyReleased);
-
 }
 
 void ofxBezierSurface::draw() {
     mesh.draw();
-    if (bControls)
-        drawControls();
 }
 
 void ofxBezierSurface::drawWireframe() {
     mesh.drawWireframe();
-    if (bControls)
-        drawControls();
 }
 
 void ofxBezierSurface::update() {
@@ -82,35 +69,31 @@ void ofxBezierSurface::update() {
 }
 
 void ofxBezierSurface::drawControls() {
-    ofFill();
-    ofSetColor(100,100,100);
-
     for (int i=0;i<=cx;i++) {
         for (int j=0;j<=cy;j++) {
             
             for (int k=0;k<selectedPnts.size();k++) {
                 if (selectedPnts[k].x == i && selectedPnts[k].y == j) {
-                    ofSetColor(0,0,255);
+                    ofSetColor(200,200,0);
                     break;
                 }
                 else
-                    ofSetColor(100,100,100);
+                    ofSetColor(200,200,200);
             }
-            
             ofCircle(inp[i][j].x, inp[i][j].y, inp[i][j].z, ctrlPntSize);
         }
     }
-    
-    if (drawBox) {
-        ofNoFill();
-        glLineWidth(2);
-        ofSetHexColor(0xFFFFFF);
-        ofRect(boxOrigin.x, boxOrigin.y, boxUpdate.x-boxOrigin.x, boxUpdate.y-boxOrigin.y);
-    }
 }
 
-void ofxBezierSurface::showControls(bool b) {
-    bControls = b;
+
+vector<ofVec3f> ofxBezierSurface::getVertices(){
+    return mesh.getVertices();
+}
+
+void ofxBezierSurface::setVertices(vector<ofVec3f> & verts){
+    for (int i=0; i<verts.size(); i++) {
+        mesh.setVertex(i, verts[i]);
+    }
 }
 
 vector<ofVec3f> ofxBezierSurface::getControlPnts(){
@@ -133,6 +116,62 @@ void ofxBezierSurface::setControlPnts(vector<ofVec3f> vec){
     createSurface();
 }
 
+int ofxBezierSurface::getControlPntDim(){
+    return cx+1;
+}
+vector< vector<ofVec3f> > lastp;
+
+void ofxBezierSurface::setControlPntDim(int dim){
+    int oldcx = cx;
+    int oldcy = cy;
+    
+    cx = dim-1;
+    cy = dim-1;
+    
+    vector< vector<ofVec3f> > oldInp;
+    
+    for (int i=0;i<=oldcx;i++) {
+        oldInp.push_back(vector<ofVec3f>());
+
+        for (int j=0;j<=oldcy;j++) {
+            oldInp[i].push_back(ofVec3f());
+            oldInp[i][j].x = inp[i][j].x;
+            oldInp[i][j].y = inp[i][j].y;
+            oldInp[i][j].z = inp[i][j].z;
+        }
+    }
+    
+    
+    oldInp[1][0].x = inp[1][0].x*.75;
+    oldInp[1][1].x = inp[1][1].x*.75;
+    oldInp[1][2].x = inp[1][2].x*.75;
+    oldInp[1][3].x = inp[1][3].x*.75;
+
+    
+    inp.clear();
+    
+    for (int i=0; i<=cx; i++) {
+        inp.push_back(vector<ofVec3f>());
+        for (int j=0; j<=cy; j++) {
+            inp[i].push_back(ofVec3f());
+        }
+    }
+    
+ 
+    // load default points
+    for (int i=0;i<=cx;i++) {
+        for (int j=0;j<=cy;j++) {
+            inp[i][j].x = ofMap(i, 0, cx, 0, width);
+            inp[i][j].y = ofMap(j, 0, cy, 0, height);
+            inp[i][j].z = 0;
+        }
+    }
+    
+    inp = calculateSurface(oldInp, inp, oldcx, oldcy, cx+1, cy+1);
+    
+    createSurface();
+}
+
 void ofxBezierSurface::reset() {
     // load default points
     for (int i=0;i<=cx;i++) {
@@ -145,47 +184,60 @@ void ofxBezierSurface::reset() {
     createSurface();
 }
 
+void ofxBezierSurface::addListeners(){
+    ofAddListener(ofEvents().mousePressed, this, &ofxBezierSurface::mousePressed);
+    ofAddListener(ofEvents().mouseDragged, this, &ofxBezierSurface::mouseDragged);
+    ofAddListener(ofEvents().mouseReleased, this, &ofxBezierSurface::mouseReleased);
+    ofAddListener(ofEvents().keyPressed, this, &ofxBezierSurface::keyPressed);
+    ofAddListener(ofEvents().keyReleased, this, &ofxBezierSurface::keyReleased);
+}
+
 
 //----------------------------------------------------- interaction.
 void ofxBezierSurface::mousePressed(ofMouseEventArgs& mouseArgs) {
-    float distance;
+    float distance = 0;
     ofPoint tmp;
     bool missing = true;
-
-    for (int i=0;i<=cx;i++) {
-        for (int j=0;j<=cy;j++) {
-            distance = ofDist(inp[i][j].x, inp[i][j].y, mouseArgs.x, mouseArgs.y);
-            if (distance < ctrlPntSize) {
-                tmp.set(i,j);
-                found = true;
-            }
-        }
+    
+    tmp.set(findPoint(mouseArgs));
+    
+    if (!shift) {
+        selectedPnts.clear();
     }
     
-    if (found) {
-        for (int i=0; i<selectedPnts.size(); i++) {
-            if (selectedPnts[i].x == tmp.x && selectedPnts[i].y == tmp.y) {
-                missing = false;
-            }
-        }
-        if (missing)
-            selectedPnts.push_back(tmp);
+    for (int i=0; i<selectedPnts.size(); i++) {
+        if (selectedPnts[i].x == tmp.x && selectedPnts[i].y == tmp.y)
+            missing = false;
     }
-    else {
-        selectedPnts.clear();
-        boxOrigin = ofPoint(mouseArgs.x, mouseArgs.y);
-        boxUpdate = boxOrigin;
-    }
+    
+    if (missing)
+        selectedPnts.push_back(tmp);
+    
     lastMouse = ofPoint(mouseArgs.x, mouseArgs.y);
 }
 
-void ofxBezierSurface::mouseDragged(ofMouseEventArgs& mouseArgs) {
-    if (!found) {
-        drawBox = true;
-        boxUpdate = ofPoint(mouseArgs.x, mouseArgs.y);
-        group = true;
+ofPoint ofxBezierSurface::findPoint(ofMouseEventArgs mouseArgs){
+    ofPoint pnt;
+    float distance = 0;
+    float nearest = -1;
+
+    
+    for (int i=0; i<=cx; i++) {
+        for (int j=0; j<=cy; j++) {
+            distance = ofDist(inp[i][j].x, inp[i][j].y, mouseArgs.x, mouseArgs.y);
+            if (nearest == -1)
+                nearest = distance;
+            if (distance < nearest) {
+                pnt.set(i,j);
+                nearest = distance;
+            }
+        }
     }
-    else if (selectedPnts.size() > 0) {
+    return pnt;
+}
+
+void ofxBezierSurface::mouseDragged(ofMouseEventArgs& mouseArgs) {
+   if (selectedPnts.size() > 0) {
         ofPoint mouse = ofPoint(mouseArgs.x, mouseArgs.y);
         ofPoint d = ofPoint(mouse.x - lastMouse.x, mouse.y - lastMouse.y);
         for (int i=0; i<selectedPnts.size(); i++) {
@@ -198,30 +250,10 @@ void ofxBezierSurface::mouseDragged(ofMouseEventArgs& mouseArgs) {
 }
 
 void ofxBezierSurface::mouseReleased(ofMouseEventArgs& mouseArgs) {
-    drawBox = false;
-    found = false;
-    int ix, iy;
-    
-    if (group) {
-        ofRectangle rect = ofRectangle(boxOrigin.x, boxOrigin.y, boxUpdate.x-boxOrigin.x, boxUpdate.y-boxOrigin.y);
-        for (int i=0;i<=cx;i++) {
-            for (int j=0;j<=cy;j++) {
-                ix = inp[i][j].x;
-                iy = inp[i][j].y;
-                if (ix + ctrlPntSize >= rect.getTopLeft().x && ix - ctrlPntSize <= rect.getBottomRight().x) {
-                    if (iy + ctrlPntSize >= rect.getTopLeft().y && iy - ctrlPntSize <= rect.getBottomRight().y)
-                        selectedPnts.push_back(ofPoint(i,j));
-                }
-                
-            }
-        }
-        group = false;
-    }
 }
 
 void ofxBezierSurface::keyPressed(ofKeyEventArgs& keyArgs) {
     int key = keyArgs.key;
-
     if (key == OF_KEY_SHIFT) shift = true;
     
     float dx=0;
@@ -258,32 +290,8 @@ void ofxBezierSurface::keyReleased(ofKeyEventArgs& keyArgs){
 }
 
 //----------------------------------------------------- bezier.
-double ofxBezierSurface::createSurface() {
-    double mui,muj;
-    double bi, bj;
-    float x,y,z;
-    
-    // calculate bezier surface
-    for (int i=0;i<rx;i++) {
-        mui = i / (double)(rx-1);
-        for (int j=0;j<ry;j++) {
-            muj = j / (double)(ry-1);
-            
-            outp[i][j].x = 0;
-            outp[i][j].y = 0;
-            outp[i][j].z = 0;
-
-            for (int ki=0;ki<=cx;ki++) {
-                bi = bezierBlend(ki,mui,cx);
-                for (int kj=0;kj<=cy;kj++) {
-                    bj = bezierBlend(kj,muj,cy);
-                    outp[i][j].x += (inp[ki][kj].x * bi * bj);
-                    outp[i][j].y += (inp[ki][kj].y * bi * bj);
-                    outp[i][j].z += (inp[ki][kj].z * bi * bj);
-                }
-            }
-        }
-    }
+void ofxBezierSurface::createSurface() {
+    outp = calculateSurface(inp, outp, cx, cy, rx, ry);
     
     int i,j;
     int cnt;
@@ -296,9 +304,39 @@ double ofxBezierSurface::createSurface() {
     for (i=0; i<verts.size(); i++) {
         mesh.setVertex(i, verts[i]);
     }
-    
 }
+
+vector< vector<ofVec3f> > ofxBezierSurface::calculateSurface(vector< vector<ofVec3f> > ip, vector< vector<ofVec3f> > op,
+                                                             int cpx, int cpy, int rpx, int rpy ){
+    double mui,muj;
+    double bi, bj;
+    float x,y,z;
     
+    // calculate bezier surface
+    for (int i=0;i<rpx;i++) {
+        mui = i / (double)(rpx-1);
+        for (int j=0;j<rpy;j++) {
+            muj = j / (double)(rpy-1);
+            
+            op[i][j].x = 0;
+            op[i][j].y = 0;
+            op[i][j].z = 0;
+            
+            for (int ki=0;ki<=cpx;ki++) {
+                bi = bezierBlend(ki,mui,cpx);
+                for (int kj=0;kj<=cpy;kj++) {
+                    bj = bezierBlend(kj,muj,cpy);
+                    op[i][j].x += (ip[ki][kj].x * bi * bj);
+                    op[i][j].y += (ip[ki][kj].y * bi * bj);
+                    op[i][j].z += (ip[ki][kj].z * bi * bj);
+                }
+            }
+        }
+    }
+    
+    return op;
+}
+
 double ofxBezierSurface::bezierBlend(int k, double mu, int n) {
     int nn,kn,nkn;
     double blend=1;

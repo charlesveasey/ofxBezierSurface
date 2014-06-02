@@ -14,8 +14,9 @@ void ofApp::setup(){
     texture.allocate(width, height, GL_RGB);
     texture.loadData(image.getPixelsRef());
     
-    surface.setup(width, height, 5, 20);
-    surface.showControls(true);
+    surface.setup(width, height, 4, 20);
+    surface.addListeners();
+
 }
 
 //--------------------------------------------------------------
@@ -29,13 +30,15 @@ void ofApp::draw(){
     texture.bind();
         surface.draw();
     texture.unbind();
+    surface.drawControls();
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
+    
     if (key == 32) // space
         surface.reset();
-    else if (key == 115) { // s
+    else if (key == 115){ // s = save
         xml.clear();
         xml.addChild("points");
         xml.setTo("points");
@@ -49,7 +52,7 @@ void ofApp::keyPressed(int key){
         xml.setToParent();
         xml.save("settings.xml");
     }
-    else if (key == 108) { // l
+    else if (key == 108){ // l = load
         string str;
         vector<ofVec3f> vec;
         xml.load("settings.xml");
@@ -64,6 +67,12 @@ void ofApp::keyPressed(int key){
             }
         }
         surface.setControlPnts(vec);
+    }
+    else if (key == 45){ // - = decrease points
+        surface.setControlPntDim(surface.getControlPntDim()-1);
+    }
+    else if (key == 61){ // - = increase points
+        surface.setControlPntDim(surface.getControlPntDim()+1);
     }
 }
 

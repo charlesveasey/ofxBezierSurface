@@ -24,4 +24,5 @@ class ofApp : public ofBaseApp{
         ofImage image;
         ofTexture texture;
         ofXml xml;
+    
 };
