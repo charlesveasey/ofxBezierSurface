@@ -118,7 +118,6 @@ void ofxBezierSurface::setControlPnts(vector<ofVec3f> vec){
 int ofxBezierSurface::getControlPntDim(){
     return cx+1;
 }
-vector< vector<ofVec3f> > lastp;
 
 void ofxBezierSurface::setControlPntDim(int dim){
     int oldcx = cx;
