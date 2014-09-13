@@ -47,7 +47,6 @@ private:
     vector<ofPoint> selectedPnts;
     bool updateSurface;
     ofPoint lastMouse;
-    bool shift;
     bool up;
     bool down;
     bool left;

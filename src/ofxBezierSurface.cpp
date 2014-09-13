@@ -45,7 +45,6 @@ void ofxBezierSurface::setup(int w, int h, int dim, int res) {
     // interface
     updateSurface = false;
     ctrlPntSize = 10;
-    shift = false;
     up = false;
     down = false;
     left = false;
@@ -201,7 +200,7 @@ void ofxBezierSurface::mousePressed(ofMouseEventArgs& mouseArgs) {
     
     tmp.set(findPoint(mouseArgs));
     
-    if (!shift) {
+    if (!ofGetKeyPressed(OF_KEY_SHIFT)) {
         selectedPnts.clear();
     }
     
@@ -254,7 +253,6 @@ void ofxBezierSurface::mouseReleased(ofMouseEventArgs& mouseArgs) {
 
 void ofxBezierSurface::keyPressed(ofKeyEventArgs& keyArgs) {
     int key = keyArgs.key;
-    if (key == OF_KEY_SHIFT) shift = true;
     
     float dx=0;
     float dy=0;
@@ -282,11 +280,12 @@ void ofxBezierSurface::keyPressed(ofKeyEventArgs& keyArgs) {
 
 void ofxBezierSurface::keyReleased(ofKeyEventArgs& keyArgs){
     int key = keyArgs.key;
-    if (key == OF_KEY_SHIFT) shift = false;
-    else if (key == OF_KEY_UP) up = false;
-    else if (key == OF_KEY_DOWN) down = false;
-    else if (key == OF_KEY_LEFT) left = false;
-    else if (key == OF_KEY_RIGHT) right = false;
+    if (!ofGetKeyPressed(OF_KEY_SHIFT)){
+        if (key == OF_KEY_UP) up = false;
+        else if (key == OF_KEY_DOWN) down = false;
+        else if (key == OF_KEY_LEFT) left = false;
+        else if (key == OF_KEY_RIGHT) right = false;
+    }
 }
 
 //----------------------------------------------------- bezier.
