@@ -79,7 +79,7 @@ void ofxBezierSurface::drawControls() {
                 else
                     ofSetColor(200,200,200);
             }
-            ofCircle(inp[i][j].x, inp[i][j].y, inp[i][j].z, ctrlPntSize);
+            ofDrawCircle(inp[i][j].x, inp[i][j].y, inp[i][j].z, ctrlPntSize);
         }
     }
 }

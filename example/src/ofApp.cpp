@@ -7,12 +7,12 @@ void ofApp::setup(){
     int height = 768;
     
     ofImage image;
-    image.loadImage("1024_768.jpg");
+    image.load("1024_768.jpg");
     image.resize(width, height);
     
     texture.clear();
     texture.allocate(width, height, GL_RGB);
-    texture.loadData(image.getPixelsRef());
+    texture.loadData(image.getPixels());
     
     surface.setup(width, height, 4, 20);
     surface.addListeners();
