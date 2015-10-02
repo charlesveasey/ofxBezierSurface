@@ -140,12 +140,6 @@ void ofxBezierSurface::setControlPntDim(int dim){
     }
     
     
-    oldInp[1][0].x = inp[1][0].x*.75;
-    oldInp[1][1].x = inp[1][1].x*.75;
-    oldInp[1][2].x = inp[1][2].x*.75;
-    oldInp[1][3].x = inp[1][3].x*.75;
-
-    
     inp.clear();
     
     for (int i=0; i<=cx; i++) {
