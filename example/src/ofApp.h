@@ -25,4 +25,5 @@ class ofApp : public ofBaseApp{
         ofTexture texture;
         ofXml xml;
     
+    bool bEnableEdit;
 };

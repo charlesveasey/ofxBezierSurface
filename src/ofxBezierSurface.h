@@ -12,7 +12,8 @@ public:
     void drawWireframe();
     void drawControls();
     void reset();
-    vector<ofVec3f> getVertices();
+//    vector<ofVec3f> getVertices();
+    vector<glm::vec3> getVertices();
     void setVertices(vector<ofVec3f> & verts);
     vector<ofVec3f> getControlPnts();
     void setControlPnts(vector<ofVec3f>);
@@ -24,9 +25,10 @@ public:
     void keyPressed(ofKeyEventArgs& keyArgs);
     void keyReleased(ofKeyEventArgs& keyArgs);
     void addListeners();
-    
+    void removeListeners();
     float ctrlPntSize;
     
+    bool bHasListener;
 private:
     int width;
     int height;
