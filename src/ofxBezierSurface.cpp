@@ -10,6 +10,8 @@ void ofxBezierSurface::setup(int w, int h, int dim, int res) {
     
     int i,j;
     
+    bHasListener = false;
+    
     // create point vectors
     for (i=0; i<=cx; i++) {
         inp.push_back(vector<ofVec3f>());
@@ -37,7 +39,7 @@ void ofxBezierSurface::setup(int w, int h, int dim, int res) {
     mesh = ofMesh::plane(width, height, rx, ry, OF_PRIMITIVE_TRIANGLES);
     createSurface();
 
-    vector<ofVec3f> verts = mesh.getVertices();
+    vector<glm::vec3> verts = mesh.getVertices();
     for (i=0; i<verts.size(); i++) {
         mesh.setTexCoord(i, ofVec2f(verts[i].x, verts[i].y));
     }
@@ -79,13 +81,27 @@ void ofxBezierSurface::drawControls() {
                 else
                     ofSetColor(200,200,200);
             }
-            ofCircle(inp[i][j].x, inp[i][j].y, inp[i][j].z, ctrlPntSize);
+            ofPoint temp_inP(inp[i][j].x, inp[i][j].y, inp[i][j].z);
+                        ofPoint temp_outP(outp[i][j].x, outp[i][j].y, outp[i][j].z);
+                        
+            ofDrawCircle(temp_inP, ctrlPntSize);
+            
+           
+              ofSetColor(0,0,200);
+            ofDrawCircle(temp_outP, ctrlPntSize/2);
+             ofSetColor(255);
+            ofDrawLine(temp_inP,temp_outP);
+            
         }
     }
 }
 
 
-vector<ofVec3f> ofxBezierSurface::getVertices(){
+//vector<ofVec3f> ofxBezierSurface::getVertices(){
+//    return mesh.getVertices();
+//}
+
+vector<glm::vec3> ofxBezierSurface::getVertices(){
     return mesh.getVertices();
 }
 
@@ -177,11 +193,22 @@ void ofxBezierSurface::reset() {
 }
 
 void ofxBezierSurface::addListeners(){
+    
+    bHasListener = true;
+    
     ofAddListener(ofEvents().mousePressed, this, &ofxBezierSurface::mousePressed);
     ofAddListener(ofEvents().mouseDragged, this, &ofxBezierSurface::mouseDragged);
     ofAddListener(ofEvents().mouseReleased, this, &ofxBezierSurface::mouseReleased);
     ofAddListener(ofEvents().keyPressed, this, &ofxBezierSurface::keyPressed);
     ofAddListener(ofEvents().keyReleased, this, &ofxBezierSurface::keyReleased);
+}
+void ofxBezierSurface::removeListeners(){
+     bHasListener = false;
+    ofRemoveListener(ofEvents().mousePressed, this, &ofxBezierSurface::mousePressed);
+    ofRemoveListener(ofEvents().mouseDragged, this, &ofxBezierSurface::mouseDragged);
+    ofRemoveListener(ofEvents().mouseReleased, this, &ofxBezierSurface::mouseReleased);
+    ofRemoveListener(ofEvents().keyPressed, this, &ofxBezierSurface::keyPressed);
+    ofRemoveListener(ofEvents().keyReleased, this, &ofxBezierSurface::keyReleased);
 }
 
 
